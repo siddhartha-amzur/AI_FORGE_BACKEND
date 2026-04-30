@@ -1,0 +1,82 @@
+# =========================
+# Python
+# =========================
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Virtual environment
+.venv/
+venv/
+env/
+
+# =========================
+# Environment variables (CRITICAL)
+# =========================
+.env
+.env.*
+*.env
+
+# =========================
+# Logs
+# =========================
+*.log
+
+# =========================
+# OS files
+# =========================
+.DS_Store
+Thumbs.db
+
+# =========================
+# VS Code
+# =========================
+.vscode/
+
+# =========================
+# ChromaDB (VERY IMPORTANT)
+# =========================
+chroma_db/
+
+# =========================
+# Uploaded files
+# =========================
+uploads/
+
+# =========================
+# Google Service Account (CRITICAL)
+# =========================
+*.json
+!package.json
+!tsconfig.json
+!*.config.json
+
+# =========================
+# Database
+# =========================
+*.sqlite3
+
+# =========================
+# Build / cache
+# =========================
+build/
+dist/
+*.egg-info/
+
+# =========================
+# Testing / coverage
+# =========================
+.coverage
+htmlcov/
+.pytest_cache/
+
+# =========================
+# Node (if any scripts used)
+# =========================
+node_modules/
+
+# =========================
+# Misc
+# =========================
+*.swp
+*.bak
