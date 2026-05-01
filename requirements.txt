@@ -12,6 +12,7 @@ alembic
 # Authentication
 python-jose[cryptography]
 passlib[bcrypt]
+bcrypt<5.0  # Pin to 4.x for compatibility with passlib 1.7.4
 python-multipart
 
 # LangChain (for LLM integration)

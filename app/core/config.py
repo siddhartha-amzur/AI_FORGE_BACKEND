@@ -5,6 +5,14 @@ from functools import lru_cache
 class Settings(BaseSettings):
     """Application settings loaded from environment variables"""
     
+    # Database Configuration
+    DATABASE_URL: str
+    
+    # JWT Configuration
+    SECRET_KEY: str
+    ALGORITHM: str = "HS256"
+    ACCESS_TOKEN_EXPIRE_MINUTES: int = 60 * 24  # 24 hours
+    
     # LiteLLM Configuration
     LITELLM_PROXY_URL: str = "http://litellm.amzur.com:4000"
     LITELLM_VIRTUAL_KEY: str
