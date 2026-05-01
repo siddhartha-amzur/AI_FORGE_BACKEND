@@ -1,0 +1,24 @@
+# FastAPI
+fastapi
+uvicorn[standard]
+pydantic
+pydantic-settings
+
+# Database
+sqlalchemy
+asyncpg
+alembic
+
+# Authentication
+python-jose[cryptography]
+passlib[bcrypt]
+python-multipart
+
+# LangChain (for LLM integration)
+langchain
+langchain-openai
+openai
+httpx
+
+# Environment
+python-dotenv
