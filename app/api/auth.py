@@ -1,6 +1,8 @@
 from fastapi import APIRouter, Depends, HTTPException, status, Response
+from fastapi.responses import RedirectResponse
 from sqlalchemy.ext.asyncio import AsyncSession
 from datetime import timedelta
+import urllib.parse
 
 from app.db.session import get_db
 from app.schemas.auth import UserRegister, UserLogin, UserResponse, Token
@@ -59,3 +61,74 @@ async def login(
     )
     
     return {"access_token": access_token, "token_type": "bearer"}
+
+
+@router.get("/google/login")
+async def google_login():
+    """Redirect to Google OAuth login"""
+    redirect_uri = f"{settings.BACKEND_URL}/api/auth/google/callback"
+    google_auth_url = (
+        f"https://accounts.google.com/o/oauth2/v2/auth?"
+        f"client_id={settings.GOOGLE_CLIENT_ID}&"
+        f"redirect_uri={urllib.parse.quote(redirect_uri)}&"
+        f"response_type=code&"
+        f"scope=openid%20email%20profile&"
+        f"access_type=offline"
+    )
+    return {"url": google_auth_url}
+
+
+@router.get("/google/callback")
+async def google_callback(
+    code: str,
+    response: Response,
+    db: AsyncSession = Depends(get_db)
+):
+    """Handle Google OAuth callback"""
+    try:
+        # Exchange code for token
+        redirect_uri = f"{settings.BACKEND_URL}/api/auth/google/callback"
+        token_data = await auth_service.exchange_google_code_for_token(code, redirect_uri)
+        
+        # Get user info
+        user_info = await auth_service.get_google_user_info(token_data["access_token"])
+        
+        # Get or create user
+        user = await auth_service.get_or_create_google_user(
+            db, 
+            user_info["email"],
+            user_info["id"]
+        )
+        
+        # Create JWT token
+        access_token_expires = timedelta(minutes=settings.ACCESS_TOKEN_EXPIRE_MINUTES)
+        access_token = auth_service.create_access_token(
+            data={"sub": str(user.id)},
+            expires_delta=access_token_expires
+        )
+        
+        # Set httpOnly cookie
+        response.set_cookie(
+            key="access_token",
+            value=f"Bearer {access_token}",
+            httponly=True,
+            max_age=settings.ACCESS_TOKEN_EXPIRE_MINUTES * 60,
+            samesite="lax"
+        )
+        
+        # Redirect to frontend with success
+        return RedirectResponse(url=f"{settings.FRONTEND_URL}/chat")
+        
+    except ValueError as e:
+        # Domain validation failed
+        print(f"Domain validation error: {e}")
+        error_message = urllib.parse.quote(str(e))
+        return RedirectResponse(url=f"{settings.FRONTEND_URL}/login?error={error_message}")
+    except Exception as e:
+        # Other errors
+        print(f"OAuth error: {type(e).__name__}: {e}")
+        import traceback
+        traceback.print_exc()
+        error_message = urllib.parse.quote(f"Authentication failed: {str(e)}")
+        return RedirectResponse(url=f"{settings.FRONTEND_URL}/login?error={error_message}")
+

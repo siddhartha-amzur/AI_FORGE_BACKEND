@@ -7,6 +7,8 @@ from app.db.session import engine
 from app.db.base import Base
 from app.models.user import User
 from app.models.chat import Chat
+from app.models.thread import Thread
+from app.models.message import Message
 
 
 async def create_tables():

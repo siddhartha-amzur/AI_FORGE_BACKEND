@@ -3,12 +3,13 @@ from fastapi.middleware.cors import CORSMiddleware
 from app.api.chat import router as chat_router
 from app.api.auth import router as auth_router
 from app.api.chats import router as chats_router
+from app.api.threads import router as threads_router
 
 
 app = FastAPI(
     title="AI Forge Chat API",
     description="Simple chatbot API using FastAPI + LangChain + Gemini",
-    version="2.0.0"
+    version="3.0.0"
 )
 
 # CORS middleware to allow frontend requests
@@ -24,6 +25,7 @@ app.add_middleware(
 app.include_router(auth_router, prefix="/api", tags=["auth"])
 app.include_router(chat_router, prefix="/api", tags=["chat"])
 app.include_router(chats_router, prefix="/api", tags=["chats"])
+app.include_router(threads_router, prefix="/api", tags=["threads"])
 
 
 @app.get("/")

@@ -13,6 +13,12 @@ class Settings(BaseSettings):
     ALGORITHM: str = "HS256"
     ACCESS_TOKEN_EXPIRE_MINUTES: int = 60 * 24  # 24 hours
     
+    # Google OAuth Configuration
+    GOOGLE_CLIENT_ID: str
+    GOOGLE_CLIENT_SECRET: str
+    FRONTEND_URL: str = "http://localhost:5173"
+    BACKEND_URL: str = "http://localhost:8000"
+    
     # LiteLLM Configuration
     LITELLM_PROXY_URL: str = "http://litellm.amzur.com:4000"
     LITELLM_VIRTUAL_KEY: str
