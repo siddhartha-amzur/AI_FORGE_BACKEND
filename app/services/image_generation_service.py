@@ -54,10 +54,11 @@ async def generate_image(prompt: str) -> tuple[str, str]:
         Exception on failure.
     """
     settings = get_settings()
+    litellm_key = settings.LITELLM_API_KEY or settings.LITELLM_VIRTUAL_KEY
     url = f"{settings.LITELLM_PROXY_URL}/images/generations"
 
     headers = {
-        "Authorization": f"Bearer {settings.LITELLM_VIRTUAL_KEY}",
+        "Authorization": f"Bearer {litellm_key}",
         "Content-Type": "application/json",
     }
 

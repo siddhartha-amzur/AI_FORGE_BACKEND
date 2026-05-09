@@ -18,8 +18,10 @@ python-multipart
 # LangChain (for LLM integration)
 langchain
 langchain-openai
+langchain-text-splitters
 openai
 httpx
+chromadb
 
 # Environment
 python-dotenv

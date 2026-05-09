@@ -9,11 +9,12 @@ class ChatbotService:
     
     def __init__(self):
         settings = get_settings()
+        litellm_key = settings.LITELLM_API_KEY or settings.LITELLM_VIRTUAL_KEY
         
         # Initialize LangChain's ChatOpenAI pointing to LiteLLM proxy
         self.llm = ChatOpenAI(
             model=settings.LITELLM_MODEL,
-            openai_api_key=settings.LITELLM_VIRTUAL_KEY,
+            openai_api_key=litellm_key,
             openai_api_base=settings.LITELLM_PROXY_URL,
             temperature=0.7,
             max_tokens=settings.LITELLM_MAX_TOKENS,
@@ -71,6 +72,19 @@ class ChatbotService:
             
         except Exception as e:
             raise Exception(f"Error generating response: {str(e)}")
+
+    async def get_rag_response(self, rag_prompt: str) -> str:
+        """Get grounded AI response for a RAG prompt."""
+        try:
+            messages = [
+                SystemMessage(content="You answer questions only from provided document context. If information is missing, clearly say that it was not found in the uploaded document."),
+                HumanMessage(content=rag_prompt),
+            ]
+            response = await self.llm.ainvoke(messages)
+            print("[chatbot] rag response received length:", len(str(response.content)))
+            return response.content
+        except Exception as e:
+            raise Exception(f"Error generating RAG response: {str(e)}")
 
 
 # Singleton instance

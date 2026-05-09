@@ -20,8 +20,10 @@ class Settings(BaseSettings):
     # LiteLLM Configuration
     LITELLM_PROXY_URL: str = "http://litellm.amzur.com:4000"
     LITELLM_VIRTUAL_KEY: str
+    LITELLM_API_KEY: str = ""
     LITELLM_USER_ID: str
     LITELLM_MODEL: str = "gemini/gemini-2.5-flash"
+    LITELLM_EMBEDDING_MODEL: str = "text-embedding-3-large"
     LITELLM_MAX_TOKENS: int = 1200
     MAX_UPLOAD_MB: int = 20
     UPLOAD_DIR: str = "./uploads"
@@ -30,6 +32,8 @@ class Settings(BaseSettings):
     # Image Generation Configuration
     IMAGE_GEN_MODEL: str = "gemini/imagen-4.0-fast-generate-001"
     GENERATED_IMAGE_DIR: str = "./uploads/generated_images"
+    CHROMA_PERSIST_DIR: str = "./chroma_db"
+    RAG_TOP_K: int = 5
     
     # Google OAuth Configuration (optional for local/dev startup)
     GOOGLE_CLIENT_ID: str = ""
@@ -57,3 +61,12 @@ def get_upload_root() -> Path:
     if upload_dir.is_absolute():
         return upload_dir
     return (BASE_DIR / upload_dir).resolve()
+
+
+def get_chroma_persist_dir() -> Path:
+    """Get the absolute Chroma persistence directory path."""
+    settings = get_settings()
+    chroma_dir = Path(settings.CHROMA_PERSIST_DIR)
+    if chroma_dir.is_absolute():
+        return chroma_dir
+    return (BASE_DIR / chroma_dir).resolve()

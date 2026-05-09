@@ -8,7 +8,7 @@ from app.services.chatbot import chatbot_service
 from app.db.session import get_db
 from app.core.deps import get_current_user
 from app.models.user import User
-from app.services import attachment_service, file_parser, memory_service, thread_service
+from app.services import attachment_service, file_parser, memory_service, rag_service, thread_service
 
 
 router = APIRouter()
@@ -137,13 +137,46 @@ async def chat(
         print("[chat] attachment context length:", len(attachment_context))
         print("[chat] image parts generated:", len(image_parts))
         
-        # Get AI response with conversation context
-        ai_response = await chatbot_service.get_response(
-            request.message,
-            conversation_context=conversation_context,
-            attachment_context=attachment_context,
-            image_parts=image_parts,
-        )
+        # Try RAG retrieval when documents are available for the current thread.
+        rag_info = {"enabled": False, "chunks": [], "sources": ""}
+        if request.message.strip():
+            try:
+                rag_info = await rag_service.retrieve_context_for_question(
+                    db,
+                    user_id=current_user.id,
+                    thread_id=thread_id,
+                    question=request.message.strip(),
+                )
+            except Exception as exc:
+                print(f"[chat] RAG retrieval failed, using standard chat: {exc}")
+                rag_info = {"enabled": False, "chunks": [], "sources": ""}
+
+        if rag_info.get("enabled") and request.message.strip():
+            retrieved_chunks = rag_info.get("chunks", [])
+            try:
+                ai_response = await rag_service.generate_rag_answer(
+                    db,
+                    user_id=current_user.id,
+                    thread_id=thread_id,
+                    question=request.message.strip(),
+                    retrieved_chunks=retrieved_chunks,
+                )
+            except Exception as exc:
+                print(f"[chat] RAG answer generation failed, using standard chat: {exc}")
+                ai_response = await chatbot_service.get_response(
+                    request.message,
+                    conversation_context=conversation_context,
+                    attachment_context=attachment_context,
+                    image_parts=image_parts,
+                )
+        else:
+            # Default chat behavior (Projects 1-6) remains unchanged.
+            ai_response = await chatbot_service.get_response(
+                request.message,
+                conversation_context=conversation_context,
+                attachment_context=attachment_context,
+                image_parts=image_parts,
+            )
         
         # Save message to thread
         saved_message = await thread_service.save_message(

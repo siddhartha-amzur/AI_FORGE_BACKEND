@@ -8,6 +8,8 @@ from sqlalchemy.orm import selectinload
 from app.models.thread import Thread
 from app.models.message import Message
 from app.models.attachment import Attachment
+from app.models.document import Document
+from app.models.generated_image import GeneratedImage
 from app.schemas.thread import ThreadCreate, ThreadUpdate
 
 
@@ -73,6 +75,26 @@ async def delete_thread(db: AsyncSession, thread_id: UUID, user_id: UUID) -> boo
         file_path = Path(attachment.file_path)
         if file_path.exists():
             file_path.unlink()
+
+    document_result = await db.execute(
+        select(Document).where(Document.thread_id == thread_id, Document.user_id == user_id)
+    )
+    documents = document_result.scalars().all()
+    for document in documents:
+        file_path = Path(document.file_path)
+        if file_path.exists():
+            file_path.unlink()
+        await db.delete(document)
+
+    generated_image_result = await db.execute(
+        select(GeneratedImage).where(GeneratedImage.thread_id == thread_id, GeneratedImage.user_id == user_id)
+    )
+    generated_images = generated_image_result.scalars().all()
+    for image in generated_images:
+        file_path = Path(image.image_path)
+        if file_path.exists():
+            file_path.unlink()
+        await db.delete(image)
     
     await db.delete(thread)
     await db.commit()
