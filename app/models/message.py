@@ -17,3 +17,4 @@ class Message(Base):
     
     # Relationships
     thread = relationship("Thread", back_populates="messages")
+    attachments = relationship("Attachment", back_populates="message")

@@ -2,9 +2,12 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select, delete
 from typing import List
 from uuid import UUID
+from pathlib import Path
+from sqlalchemy.orm import selectinload
 
 from app.models.thread import Thread
 from app.models.message import Message
+from app.models.attachment import Attachment
 from app.schemas.thread import ThreadCreate, ThreadUpdate
 
 
@@ -61,6 +64,15 @@ async def delete_thread(db: AsyncSession, thread_id: UUID, user_id: UUID) -> boo
     
     if not thread:
         return False
+
+    attachment_result = await db.execute(
+        select(Attachment).where(Attachment.thread_id == thread_id, Attachment.user_id == user_id)
+    )
+    attachments = attachment_result.scalars().all()
+    for attachment in attachments:
+        file_path = Path(attachment.file_path)
+        if file_path.exists():
+            file_path.unlink()
     
     await db.delete(thread)
     await db.commit()
@@ -78,13 +90,20 @@ async def get_thread_messages(db: AsyncSession, thread_id: UUID, user_id: UUID) 
     
     result = await db.execute(
         select(Message)
+        .options(selectinload(Message.attachments))
         .where(Message.thread_id == thread_id)
         .order_by(Message.created_at.asc())
     )
     return result.scalars().all()
 
 
-async def save_message(db: AsyncSession, thread_id: UUID, message: str, response: str) -> Message:
+async def save_message(
+    db: AsyncSession,
+    thread_id: UUID,
+    message: str,
+    response: str,
+    commit: bool = True,
+) -> Message:
     """Save a message to a thread"""
     new_message = Message(
         thread_id=thread_id,
@@ -93,8 +112,12 @@ async def save_message(db: AsyncSession, thread_id: UUID, message: str, response
     )
     
     db.add(new_message)
-    await db.commit()
+    await db.flush()
     await db.refresh(new_message)
+
+    if commit:
+        await db.commit()
+        await db.refresh(new_message)
     
     return new_message
 

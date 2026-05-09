@@ -9,6 +9,7 @@ from app.models.user import User
 from app.models.chat import Chat
 from app.models.thread import Thread
 from app.models.message import Message
+from app.models.attachment import Attachment
 
 
 async def create_tables():

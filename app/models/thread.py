@@ -17,3 +17,4 @@ class Thread(Base):
     
     # Relationships
     messages = relationship("Message", back_populates="thread", cascade="all, delete-orphan")
+    attachments = relationship("Attachment", back_populates="thread", cascade="all, delete-orphan")

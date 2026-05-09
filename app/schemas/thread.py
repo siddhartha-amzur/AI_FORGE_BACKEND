@@ -1,7 +1,9 @@
 from pydantic import BaseModel
 from datetime import datetime
 from uuid import UUID
-from typing import Optional
+from typing import Optional, List
+
+from app.schemas.attachment import AttachmentResponse
 
 
 class ThreadCreate(BaseModel):
@@ -32,6 +34,7 @@ class MessageResponse(BaseModel):
     message: str
     response: str
     created_at: datetime
+    attachments: List[AttachmentResponse] = []
     
     class Config:
         from_attributes = True

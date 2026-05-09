@@ -23,3 +23,7 @@ httpx
 
 # Environment
 python-dotenv
+
+# Attachment parsing
+pypdf
+openpyxl

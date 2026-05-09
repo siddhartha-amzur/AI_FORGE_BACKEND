@@ -1,4 +1,4 @@
-from fastapi import Depends, HTTPException, status, Cookie
+from fastapi import Depends, HTTPException, status, Cookie, Header
 from typing import Optional
 from jose import JWTError, jwt
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -13,6 +13,7 @@ settings = get_settings()
 
 async def get_current_user(
     access_token: Optional[str] = Cookie(None),
+    authorization: Optional[str] = Header(None),
     db: AsyncSession = Depends(get_db)
 ) -> User:
     """Get current authenticated user from JWT token"""
@@ -22,12 +23,16 @@ async def get_current_user(
         headers={"WWW-Authenticate": "Bearer"},
     )
     
-    if not access_token:
+    token_source = access_token
+    if not token_source and authorization:
+        token_source = authorization
+
+    if not token_source:
         raise credentials_exception
     
     # Extract token from "Bearer <token>" format
     try:
-        token = access_token.replace("Bearer ", "")
+        token = token_source.replace("Bearer ", "")
         payload = jwt.decode(token, settings.SECRET_KEY, algorithms=[settings.ALGORITHM])
         user_id: str = payload.get("sub")
         if user_id is None:
