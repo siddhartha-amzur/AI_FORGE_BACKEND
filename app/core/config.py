@@ -26,6 +26,10 @@ class Settings(BaseSettings):
     MAX_UPLOAD_MB: int = 20
     UPLOAD_DIR: str = "./uploads"
     ALLOWED_MIME_TYPES: str = ""
+
+    # Image Generation Configuration
+    IMAGE_GEN_MODEL: str = "gemini/imagen-4.0-fast-generate-001"
+    GENERATED_IMAGE_DIR: str = "./uploads/generated_images"
     
     # Google OAuth Configuration (optional for local/dev startup)
     GOOGLE_CLIENT_ID: str = ""

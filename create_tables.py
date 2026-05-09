@@ -10,6 +10,7 @@ from app.models.chat import Chat
 from app.models.thread import Thread
 from app.models.message import Message
 from app.models.attachment import Attachment
+from app.models.generated_image import GeneratedImage
 
 
 async def create_tables():

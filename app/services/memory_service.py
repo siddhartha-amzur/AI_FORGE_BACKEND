@@ -5,6 +5,7 @@ This service loads the last 5 conversation pairs from a thread and formats them
 for inclusion in the LLM prompt.
 """
 
+import json
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select
 from uuid import UUID
@@ -105,7 +106,15 @@ def build_conversation_history(conversations: List[dict]) -> str:
     
     for conv in conversations:
         history_lines.append(f"User: {conv['message']}")
-        history_lines.append(f"Assistant: {conv['response']}")
+        # Handle image generation responses stored as JSON
+        response = conv['response']
+        try:
+            parsed = json.loads(response)
+            if isinstance(parsed, dict) and parsed.get("type") == "image_generation":
+                response = f"[Image generated for prompt: \"{parsed.get('prompt', conv['message'])}\"]"
+        except (json.JSONDecodeError, TypeError):
+            pass
+        history_lines.append(f"Assistant: {response}")
     
     history_lines.append("")  # Add blank line before current message
     
