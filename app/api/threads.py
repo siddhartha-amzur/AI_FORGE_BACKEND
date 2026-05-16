@@ -7,7 +7,7 @@ from app.db.session import get_db
 from app.core.deps import get_current_user
 from app.models.user import User
 from app.schemas.thread import ThreadCreate, ThreadUpdate, ThreadResponse, MessageResponse
-from app.services import thread_service
+from app.services import thread_service, thread_restore_service
 
 router = APIRouter(prefix="/threads", tags=["Threads"])
 
@@ -113,3 +113,24 @@ async def get_thread_messages(
         )
     
     return messages
+
+
+@router.get("/{thread_id}/restore")
+async def restore_thread_context(
+    thread_id: UUID,
+    current_user: User = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db),
+):
+    thread = await thread_service.get_thread_by_id(db, thread_id, current_user.id)
+    if not thread:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Thread not found",
+        )
+
+    payload = await thread_restore_service.get_thread_restore_payload(
+        db,
+        user_id=current_user.id,
+        thread_id=thread_id,
+    )
+    return payload

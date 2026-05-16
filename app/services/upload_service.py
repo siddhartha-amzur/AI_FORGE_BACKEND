@@ -86,7 +86,7 @@ def validate_upload_type(filename: str, mime_type: str) -> str:
 
 def ensure_upload_directories() -> None:
     upload_root = get_upload_root()
-    for folder in {"images", "videos", "documents", "code"}:
+    for folder in {"images", "videos", "documents", "code", "excel", "csv", "gsheets_cache", "previews", "temporary"}:
         (upload_root / folder).mkdir(parents=True, exist_ok=True)
 
 

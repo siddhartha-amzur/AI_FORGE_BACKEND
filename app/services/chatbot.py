@@ -2,6 +2,8 @@ from langchain_openai import ChatOpenAI
 from langchain_core.messages import HumanMessage, SystemMessage
 from app.core.config import get_settings
 from typing import Optional
+import re
+from urllib.parse import quote_plus
 
 
 class ChatbotService:
@@ -67,8 +69,8 @@ class ChatbotService:
             # Get response from LangChain
             response = await self.llm.ainvoke(messages)
             print("[chatbot] response received length:", len(str(response.content)))
-            
-            return response.content
+
+            return self._append_reference_links(str(response.content), current_message)
             
         except Exception as e:
             raise Exception(f"Error generating response: {str(e)}")
@@ -85,6 +87,27 @@ class ChatbotService:
             return response.content
         except Exception as e:
             raise Exception(f"Error generating RAG response: {str(e)}")
+
+    def _append_reference_links(self, response_text: str, user_message: str) -> str:
+        """Append a markdown references section with clickable links.
+
+        Skip appending when response already contains URLs or markdown links.
+        """
+        text = response_text or ""
+        if not user_message.strip():
+            return text
+
+        if re.search(r"https?://|\[[^\]]+\]\([^\)]+\)", text):
+            return text
+
+        query = quote_plus(user_message.strip()[:160])
+        references_md = (
+            "\n\n### References\n"
+            f"- [Google Scholar](https://scholar.google.com/scholar?q={query})\n"
+            f"- [arXiv Search](https://arxiv.org/search/?searchtype=all&query={query}&abstracts=show&order=-announced_date_first&size=50)\n"
+            f"- [Semantic Scholar](https://www.semanticscholar.org/search?q={query}&sort=relevance)"
+        )
+        return text.rstrip() + references_md
 
 
 # Singleton instance

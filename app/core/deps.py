@@ -32,7 +32,8 @@ async def get_current_user(
     
     # Extract token from "Bearer <token>" format
     try:
-        token = token_source.replace("Bearer ", "")
+        token_source = token_source.strip().strip('"')
+        token = token_source.replace("Bearer ", "") if token_source.startswith("Bearer ") else token_source
         payload = jwt.decode(token, settings.SECRET_KEY, algorithms=[settings.ALGORITHM])
         user_id: str = payload.get("sub")
         if user_id is None:
